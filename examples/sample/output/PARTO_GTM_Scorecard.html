@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Parto Plan Scorecard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0f1f;--surface:#131a33;--surface2:#19223f;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+  --text:#e9edf9;--muted:#8d97bd;--dim:#5d6790;
+  /* chart palette — validated (dark, surface #131a33): L-band, chroma, CVD ΔE 17.6, normal ΔE 26.2, contrast ≥3:1 */
+  --s-current:#d9692f;--s-gain:#159fb0;
+  /* status — reserved, always with icon + label */
+  --good:#34d399;--warn:#fbbf24;--crit:#f87171;
+  --accent:#f2a06c;--r:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14.5px;line-height:1.8;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(800px 420px at 90% -10%,rgba(217,105,47,.14),transparent 60%),radial-gradient(700px 500px at 0% 30%,rgba(75,123,255,.08),transparent 60%);background-attachment:fixed}
+.bg-orb{position:fixed;left:-170px;bottom:-190px;width:480px;opacity:.18;filter:blur(6px);pointer-events:none;z-index:-1}
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+.mono{font-feature-settings:"tnum";direction:ltr;unicode-bidi:isolate}
+header{position:sticky;top:0;z-index:20;background:rgba(10,15,31,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:16px;height:64px}
+header img.logo{height:28px}
+header .t{padding-inline-start:14px;border-inline-start:1px solid var(--line2);line-height:1.35}
+header .t b{display:block;font-size:14px}
+header .t small{color:var(--muted);font-size:11.5px}
+header nav{margin-inline-start:auto;display:flex;gap:8px;align-items:center}
+.btn{font:inherit;font-size:12.5px;border:1px solid var(--line2);background:var(--surface);color:var(--text);padding:7px 13px;border-radius:11px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:var(--s-current)}
+header img.vk{height:24px;opacity:.9}
+main{padding:24px 0 60px}
+.grid{display:grid;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.card h2{font-size:15.5px;margin:0 0 2px;font-weight:800}
+.card .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+.row1{grid-template-columns:1.25fr 1fr 1fr 1fr}
+.row2{grid-template-columns:1.6fr 1fr;margin-top:16px}
+.row3{grid-template-columns:1fr 1fr;margin-top:16px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* hero */
+.hero .big{display:flex;align-items:baseline;gap:8px}
+.hero .big b{font-size:56px;font-weight:900;line-height:1.1}
+.hero .big span{color:var(--muted);font-size:16px}
+.track{position:relative;height:12px;border-radius:4px;background:rgba(255,255,255,.06);display:flex;gap:2px;overflow:hidden;margin:12px 0 8px}
+.track i{display:block;height:100%;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.track i:first-child{border-radius:0 4px 4px 0}
+.ticks{position:relative;height:16px;font-size:10.5px;color:var(--dim)}
+.ticks span{position:absolute;transform:translateX(50%)}
+.ticks span::before{content:"";position:absolute;top:-10px;right:50%;width:1px;height:8px;background:var(--line2)}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:99px;border:1px solid currentColor}
+.status.crit{color:var(--crit)}.status.warn{color:var(--warn)}.status.good{color:var(--good)}
+.tile .lbl{font-size:12.5px;color:var(--muted);font-weight:700}
+.tile .val{font-size:30px;font-weight:900;margin:2px 0;line-height:1.3}
+.tile .val small{font-size:14px;color:var(--muted);font-weight:500}
+.tile .note{font-size:12px;color:var(--muted)}
+
+/* dimension bars */
+.dims{display:grid;gap:2px}
+.dim{display:grid;grid-template-columns:210px 46px 1fr 92px;gap:12px;align-items:center;padding:8px 6px;border-radius:10px;cursor:pointer}
+.dim:hover,.dim.open{background:rgba(255,255,255,.035)}
+.dim .n{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dim .w{font-size:11.5px;color:var(--dim);text-align:center}
+.dim .bar{height:10px;display:flex;gap:2px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;position:relative}
+.dim .bar i{height:100%;display:block;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.dim .bar i:first-child{border-radius:0 4px 4px 0}
+.dim .v{font-size:12.5px;text-align:left;color:var(--muted)}
+.dim .v b{color:var(--text)}
+.dim .more{grid-column:1/-1;display:none;font-size:13px;color:#b9c1de;padding:4px 4px 6px;border-top:1px dashed var(--line);margin-top:4px}
+.dim.open .more{display:block}
+.dim .more b{color:var(--text)}
+.axis{display:grid;grid-template-columns:210px 46px 1fr 92px;gap:12px;font-size:10.5px;color:var(--dim);padding:0 6px 4px}
+.axis div{display:flex;justify-content:space-between}
+
+/* fixes */
+.fixes{display:grid;gap:8px;max-height:560px;overflow:auto;padding-inline-end:4px}
+.fix{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:start;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.02);cursor:pointer}
+.fix:hover{border-color:var(--line2)}
+.fix input{width:18px;height:18px;margin:3px 0 0;accent-color:var(--s-gain);cursor:pointer}
+.fix b{font-size:13.5px;display:block}
+.fix small{color:var(--muted);font-size:12px;display:block}
+.fix .gain{font-size:12px;color:var(--muted);white-space:nowrap}
+.fix.done{border-color:rgba(21,159,176,.5);background:rgba(21,159,176,.07)}
+.fix.done b{text-decoration:line-through;text-decoration-color:var(--dim)}
+.pri{display:inline-block;font-size:10.5px;font-weight:800;padding:0 7px;border-radius:99px;margin-inline-start:6px;vertical-align:middle;border:1px solid currentColor}
+.pri.p1{color:var(--crit)}.pri.p2{color:var(--warn)}
+
+/* funnel */
+.inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.inputs label{font-size:11.5px;color:var(--muted);display:grid;gap:4px}
+.inputs input{font:inherit;font-size:14px;background:var(--surface2);color:var(--text);border:1px solid var(--line2);border-radius:10px;padding:6px 10px;width:100%;direction:ltr;text-align:right}
+.fn{display:grid;grid-template-columns:110px 1fr 70px;gap:10px;align-items:center;margin:6px 0;font-size:13px}
+.fn .b{height:22px;background:rgba(255,255,255,.05);border-radius:4px;position:relative}
+.fn .b i{position:absolute;top:0;bottom:0;right:0;background:var(--s-current);border-radius:0 4px 4px 0;transition:width .4s}
+.fn .c{text-align:left;font-weight:800}
+.result{margin-top:14px;padding:14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line)}
+.result .line{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:3px 0}
+.result .line b{font-size:15px}
+.assume{font-size:11.5px;color:var(--dim);margin-top:10px}
+
+/* spend timeline */
+.tl{position:relative;margin-top:8px}
+.tl-row{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;align-items:center;height:34px;font-size:13px}
+.tl-row .lane{position:relative;height:100%;border-bottom:1px solid var(--line)}
+.tl-row .seg{position:absolute;top:9px;height:16px;border-radius:4px;background:var(--s-current)}
+.tl-row .seg.unk{background:repeating-linear-gradient(135deg,rgba(255,255,255,.18) 0 4px,transparent 4px 9px);border:1px dashed var(--line2)}
+.tl-row .amt{text-align:left;font-weight:700}
+.tl-axis{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;font-size:10.5px;color:var(--dim)}
+.tl-axis .scale{position:relative;height:18px}
+.tl-axis .scale span{position:absolute;transform:translateX(50%);white-space:nowrap}
+.gate{position:absolute;top:0;bottom:18px;width:0;border-right:2px solid var(--warn);pointer-events:none}
+.gate span{position:absolute;top:-22px;transform:translateX(50%);font-size:11px;font-weight:800;color:var(--warn);white-space:nowrap;background:var(--surface);padding:0 4px}
+.gate.launch{border-right-style:dashed;border-color:var(--dim)}
+.gate.launch span{color:var(--muted)}
+
+/* decisions table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:right;color:var(--muted);font-size:11.5px;font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line2)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.id{font-family:ui-monospace,monospace;color:var(--accent);white-space:nowrap}
+.tbl{overflow-x:auto}
+
+.tip{position:fixed;z-index:50;pointer-events:none;max-width:300px;background:#1c2648;border:1px solid var(--line2);border-radius:12px;padding:10px 12px;font-size:12.5px;opacity:0;transition:opacity .12s;line-height:1.7;box-shadow:0 16px 40px -16px #000}
+.tip b{display:block;font-size:13px}
+footer{color:var(--dim);font-size:12px;padding:24px 0}
+footer .wrap{border-top:1px solid var(--line);padding-top:16px}
+
+@media (max-width:1060px){.row1{grid-template-columns:1fr 1fr}.row2,.row3{grid-template-columns:1fr}}
+@media (max-width:640px){
+  .wrap{padding:0 16px}
+  .row1{grid-template-columns:1fr}
+  header .t,header img.vk{display:none}
+  header nav{gap:6px}.btn{padding:6px 10px}
+  .dim,.axis{grid-template-columns:1fr 70px}
+  .dim .w,.axis>div:nth-child(2){display:none}
+  .dim .bar{grid-column:1/-1;order:3}
+  .axis{display:none}
+  .inputs{grid-template-columns:1fr 1fr}
+  .tl-row,.tl-axis{grid-template-columns:90px 1fr 54px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<img class="bg-orb" id="bgOrb" alt="">
+<header><div class="wrap">
+  <span id="logo"></span>
+  <div class="t"><b>داشبورد ارزیابی طرح Go to Market</b><small id="hsub"></small></div>
+  <nav><a class="btn" id="toPres" href="#">← ارائهٔ طرح</a><button class="btn" id="reset">پاک‌کردن تیک‌ها</button><span id="vk"></span></nav>
+</div></header>
+
+<main><div class="wrap">
+  <div class="grid row1">
+    <div class="card hero">
+      <h2>امتیاز کل طرح</h2>
+      <p class="sub">۱۰ معیار وزن‌دار · از ۱۰۰</p>
+      <div class="big"><b class="mono" id="scoreNow"></b><span>/ ۱۰۰</span><span id="scoreProj" style="margin-inline-start:10px;color:var(--text);font-size:14px"></span></div>
+      <div class="track" id="heroTrack"><i style="background:var(--s-current)"></i><i style="background:var(--s-gain)"></i></div>
+      <div class="ticks"><span style="right:60%">۶۰</span><span style="right:75%">۷۵</span></div>
+      <div class="legend" style="margin:6px 0 10px"><span><i class="sw" style="background:var(--s-current)"></i>امتیاز فعلی</span><span><i class="sw" style="background:var(--s-gain)"></i>افزایش با اصلاحات تیک‌خورده</span></div>
+      <span class="status" id="verdict"></span>
+      <div style="font-size:11.5px;color:var(--dim);margin-top:8px">آستانه: زیر ۶۰ آماده نیست · ۶۰ تا ۷۵ مشروط · ۷۵ به بالا آماده</div>
+    </div>
+    <div class="card tile" id="tPer"></div>
+    <div class="card tile" id="tGate"></div>
+    <div class="card tile" id="tRes"></div>
+  </div>
+
+  <div class="grid row2">
+    <div class="card">
+      <h2>امتیاز به تفکیک معیار</h2>
+      <p class="sub">روی هر ردیف بزنید تا دلیل امتیاز و راه اصلاح را ببینید. نوار فیروزه‌ای: افزایش برآوردی پس از اصلاحات تیک‌خورده.</p>
+      <div class="legend"><span><i class="sw" style="background:var(--s-current)"></i>امتیاز فعلی (از ۵)</span><span><i class="sw" style="background:var(--s-gain)"></i>افزایش برآوردی</span></div>
+      <div class="axis"><div>معیار</div><div>وزن</div><div><span>۰</span><span>۱</span><span>۲</span><span>۳</span><span>۴</span><span>۵</span></div><div style="text-align:left">امتیاز</div></div>
+      <div class="dims" id="dims"></div>
+    </div>
+    <div class="card">
+      <h2>اصلاحات پیشنهادی</h2>
+      <p class="sub">با تیک‌زدن هر اصلاح، امتیاز برآوردی به‌روز می‌شود. تیک‌ها فقط در همین مرورگر ذخیره می‌شوند.</p>
+      <div class="fixes" id="fixes"></div>
+    </div>
+  </div>
+
+  <div class="grid row3">
+    <div class="card">
+      <h2 id="fTitle"></h2>
+      <p class="sub">نرخ‌ها را با برآورد تیم فروش جایگزین کنید.</p>
+      <div class="inputs">
+        <label>حساب اولویت‌دار<input type="number" id="iAcc" min="0"></label>
+        <label>٪ جلسه از حساب<input type="number" id="iMeet" min="0" max="100"></label>
+        <label>٪ دمو از جلسه<input type="number" id="iDemo" min="0" max="100"></label>
+        <label>٪ پیشنهاد از دمو<input type="number" id="iProp" min="0" max="100"></label>
+        <label>٪ خرید از پیشنهاد<input type="number" id="iClose" min="0" max="100"></label>
+        <label id="ticketLbl">میانگین خرید<input type="number" id="iTicket" min="0"></label>
+      </div>
+      <div id="funnel"></div>
+      <div class="result" id="fResult"></div>
+      <div class="assume" id="fAssume"></div>
+    </div>
+    <div class="card">
+      <h2>تعهد بودجه در برابر دروازهٔ محصول</h2>
+      <p class="sub">بازهٔ تعهد هر قلم از طرح؛ اقلام بدون تاریخ هاشور خورده‌اند.</p>
+      <div class="legend"><span><i class="sw" style="background:var(--s-current)"></i>بازهٔ تعهد / اجرای هزینه</span><span><i class="sw" style="background:repeating-linear-gradient(135deg,rgba(255,255,255,.25) 0 3px,transparent 3px 6px);border:1px dashed var(--line2)"></i>تاریخ نامشخص</span></div>
+      <div class="tl" id="tl" style="margin-top:28px"></div>
+      <div class="result" style="margin-top:16px" id="tlSum"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h2>پرسش‌های باز و تصمیم‌های در انتظار</h2>
+    <p class="sub">هر تصمیم با گزینهٔ ردشده و هزینه‌اش ثبت شود؛ هر پرسش باز مالک و موعد دارد.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>شناسه</th><th>موضوع</th><th>مالک</th><th>چه چیزی را مسدود می‌کند</th><th>موعد</th><th>وضعیت</th></tr></thead>
+      <tbody id="decisions"></tbody>
+    </table></div>
+  </div>
+</div></main>
+<footer><div class="wrap" id="foot"></div></footer>
+<div class="tip" id="tip"></div>
+
+<script>
+'use strict';
+const P={"meta": {"brand": "Parto", "brand_fa": "پرتو", "slug": "PARTO", "campaign": "Go to Market", "start": "1405/08/26", "end": "1405/10/15", "launch": "1405/09/25", "product_gate": "1405/09/10", "logos": {}}, "hero": {"eyebrow": "نمونهٔ ساختگی · کمپین GO TO MARKET · ۱۴۰۵", "headline": "از انبار شلوغ<br>تا <em>سفارش بی‌خطا<\/em>", "lead": "پروپوزال، نقشهٔ اجرا و گانت ۵۰ روزهٔ ورود «پرتو» (نرم‌افزار ابری انبار و سفارش برای پخش‌کننده‌های کوچک) به بازار. همهٔ نام‌ها، اعداد و منابع این نمونه ساختگی‌اند."}, "kpis": [{"label": "بودجهٔ مستقیم", "value": 3800, "note": "میلیون تومان · به‌علاوهٔ ۴۰۰ ذخیره", "icon": "money", "color": "copper"}, {"label": "هدف فروش", "value": 1200, "note": "میلیون تومان · تا ۱۵ دی", "icon": "trend", "color": "green"}, {"label": "حساب هدف", "value": 80, "note": "در ۳ سگمنت", "icon": "target", "color": "cyan"}, {"label": "مهمانان رونمایی", "value": 60, "note": "وبینار + رویداد حضوری", "icon": "people", "color": "violet"}], "proposal": {"title": "ورود به بازار با اثبات، نه با تبلیغ", "lead": "اول مسئلهٔ خطای سفارش و موجودی را با داده و روایت مشتری مطرح می‌کنیم، بعد پرتو را با دموی زنده رونمایی می‌کنیم. فروش مستقیم از روز اول، جدا از رویداد، جریان دارد.", "cards": [{"title": "مسئله", "tone": "red", "text": "پخش‌کننده‌های کوچک موجودی را در اکسل نگه می‌دارند؛ خطای سفارش، کسری انبار و تسویهٔ دیر با فروشگاه‌ها هزینهٔ پنهان می‌سازد."}, {"title": "ایده", "tone": "cyan", "text": "کمپین مسئله‌محور: گزارش کوتاه «هزینهٔ یک سفارش اشتباه» با دادهٔ مشتریان آزمایشی، پیش از نام بردن از محصول."}, {"title": "راه‌حل", "tone": "copper", "text": "پرتو: انبار، سفارش و تسویه در یک پنل ابری؛ راه‌اندازی در یک روز و دموی زنده با دادهٔ خود مشتری."}, {"title": "نتیجه", "tone": "green", "text": "۸۰ حساب هدف، ۵ قرارداد سالانه و ۱٬۲۰۰ میلیون تومان فروش قطعی تا ۱۵ دی؛ هدف از قیف فروش مشتق شده است."}], "storyline": "مسئله ← دادهٔ مشتری ← روایت رسانه‌ای ← دموی زنده ← قرارداد", "storyline_src": "منطق روایت کمپین · نمونهٔ ساختگی", "steps": [{"title": "شناخت مشتری", "sub": "۸۰ حساب با تصمیم‌گیر"}, {"title": "اثبات ارزش", "sub": "۳ مشتری آزمایشی"}, {"title": "پیش‌کمپین", "sub": "گزارش و وبینار"}, {"title": "رونمایی", "sub": "دموی زنده"}, {"title": "پیشنهاد و قرارداد", "sub": "۱۲ پیشنهاد"}, {"title": "پیگیری", "sub": "۲۴ ساعت / ۷۲ ساعت / ۱ هفته"}]}, "research": {"title": "بازار چه چیزی را قبلاً دیده است", "lead": "سه عرضهٔ مشابه (ساختگی) و درسی که برای پرتو دارند.", "positioning": "برای پخش‌کنندهٔ کوچکی که با اکسل کار می‌کند، پرتو تنها نرم‌افزار انباری است که در یک روز با دادهٔ خود او راه می‌افتد.", "benchmark": [{"name": "نرم‌افزار حسابداری الف", "what": "فروش از طریق نمایندگی‌های استانی و آموزش حضوری", "lesson": "نمایندگی دسترسی می‌دهد ولی چرخهٔ فروش را طولانی می‌کند", "evidence": "[نمونهٔ ساختگی — S-02]"}, {"name": "پلتفرم سفارش ب", "what": "رایگان برای ۳ ماه، سپس اشتراک ماهانه", "lesson": "دورهٔ رایگان بدون راه‌اندازی همراه، ریزش بالا داشت", "evidence": "[نمونهٔ ساختگی — S-02]"}, {"name": "سامانهٔ انبار ج", "what": "رونمایی در نمایشگاه صنعتی با دموی آفلاین", "lesson": "دموی بدون دادهٔ واقعی مشتری به قرارداد تبدیل نشد", "evidence": "[نمونهٔ ساختگی — S-02]"}]}, "segments": {"title": "سه سگمنت، سه منطق ارتباط", "lead": "نقش هر حساب ثبت می‌شود: «خریدار»، «شریک توزیع» یا «معرف».", "items": [{"tag": "سگمنت ۰۱ · خریدار", "name": "پخش‌کننده‌های کوچک", "color": "copper", "desc": "شرکت‌های پخش ۵ تا ۵۰ نفره در مواد غذایی و بهداشتی.", "problem": "خطای سفارش، کسری انبار، تسویهٔ دیر", "decision_maker": "مدیرعامل یا مدیر مالی", "access": "انجمن صنفی، معرفی مشتریان آزمایشی", "objections": "هزینه، زمان آموزش، امنیت داده", "proof": "دموی زنده با دادهٔ خودشان", "ticket": "≈ ۲۵۰ میلیون تومان سالانه"}, {"tag": "سگمنت ۰۲ · شریک توزیع", "name": "شرکت‌های حسابداری", "color": "cyan", "desc": "دفاتر حسابداری که برای ده‌ها پخش‌کننده کار می‌کنند.", "problem": "دادهٔ نامرتب مشتریان و ساعت کار اضافه", "decision_maker": "مدیر دفتر", "access": "جلسهٔ مستقیم، وبینار تخصصی", "objections": "رقابت با نرم‌افزار فعلی خودشان", "proof": "مدل کمیسیون و خروجی سازگار", "ticket": "کمیسیون ۱۵٪"}, {"tag": "سگمنت ۰۳ · معرف", "name": "تأمین‌کنندگان و برندها", "color": "violet", "desc": "برندهایی که به پخش‌کننده‌ها کالا می‌دهند.", "problem": "دید نداشتن به موجودی پخش", "decision_maker": "مدیر فروش برند", "access": "شبکهٔ تیم فروش", "objections": "اولویت پایین برای آن‌ها", "proof": "گزارش موجودی مشترک", "ticket": "بدون خرید مستقیم"}], "sequence": {"title": "ترتیب شروع مذاکره", "note": "تاکتیک، نه تغییر شمارهٔ سگمنت", "steps": [{"title": "۱. حسابداری‌ها", "sub": "دسترسی به چند مشتری با یک جلسه", "color": "cyan"}, {"title": "۲. پخش‌کننده‌ها", "sub": "فروش مستقیم و دمو", "color": "copper"}, {"title": "۳. برندها", "sub": "معرفی پس از اولین قراردادها", "color": "violet"}]}}, "architecture": {"title": "دو مسیر موازی که در رونمایی به هم می‌رسند", "lead": "اعتماد با داده و روایت ساخته می‌شود و فرصت فروش با جلسهٔ مستقیم. رویداد نقطهٔ اوج است، نه شروع فروش.", "tracks": [{"name": "A · روایت و اعتبار", "sub": "محتوا و رسانه", "color": "cyan", "steps": ["گزارش داده", "کانسپت", "انتشار", "وبینار"]}, {"name": "B · فروش مستقیم", "sub": "از روز اول", "color": "green", "steps": ["حساب هدف", "کشف نیاز", "دمو و پیشنهاد", "قرارداد"]}], "merge": "رونمایی ۲۵ آذر: نقطهٔ تلاقی روایت و فروش", "channels": [{"name": "Owned Media", "color": "green", "text": "وب‌سایت، لینکدین شرکت، خبرنامهٔ مشتریان و ویدیوی دمو."}, {"name": "Paid Media", "color": "blue", "text": "رپورتاژ در دو رسانهٔ کسب‌وکار و تبلیغ هدفمند لینکدین، بر اساس پیش‌فاکتور."}, {"name": "Earned & Credibility", "color": "copper", "text": "روایت سه مشتری آزمایشی و حضور انجمن صنفی؛ تبلیغ پولی، تأیید مستقل معرفی نمی‌شود."}]}, "concepts": {"title": "از گزارش داده تا کانسپت کمپین", "lead": "اول گزارش، بعد کانسپت. تولید ویدیو فقط بعد از قفل شدن روایت سفارش داده می‌شود.", "items": [{"title": "«هزینهٔ یک سفارش اشتباه»", "text": "عدد واقعی از سه مشتری آزمایشی: یک خطا چند ساعت و چند تومان هزینه دارد.", "src": "دادهٔ آزمایشی · نیازمند تأیید مشتری"}, {"title": "«انبارت را در یک روز ببین»", "text": "قول راه‌اندازی یک‌روزه، فقط اگر در آزمون محصول اثبات شود.", "src": "ادعای مشروط به دروازهٔ محصول"}, {"title": "«حسابدار تو هم راضی است»", "text": "روایت از زبان دفتر حسابداری؛ خروجی سازگار و کار کمتر.", "src": "مصاحبه با شریک توزیع"}, {"title": "وبینار «پخش بدون اکسل»", "text": "گفت‌وگوی مدیران پخش دربارهٔ تجربهٔ واقعی؛ قابل برش برای ویدیوهای کوتاه.", "src": "ایدهٔ تیم محتوا"}], "deliverables_title": "بستهٔ تحویلی از گزارش", "deliverables": ["گزارش ۴ صفحه‌ای با دادهٔ تأییدشده", "یک روایت مرکزی برای کل کمپین", "۳ زاویهٔ محتوای فرعی", "بریف ویدیوی دمو", "پرسش‌های وبینار", "ماتریس پیام به تفکیک سگمنت"], "claims_rule": "عبارت‌های «راه‌اندازی یک‌روزه»، «بدون خطا» و هر عدد صرفه‌جویی فقط با دادهٔ تأییدشدهٔ مشتری و پس از دروازهٔ محصول منتشر می‌شوند.", "dates_note": "موعد: گزارش ۳۰ آبان · قفل کانسپت ۳ آذر"}, "event": {"title": "رونمایی و ترکیب مهمانان", "lead": "رویداد کوچک و فروش‌محور برای ۶۰ مهمان، با میزهای دموی یک‌به‌یک.", "guests": [{"label": "پخش‌کننده‌ها", "n": 30, "color": "copper"}, {"label": "دفاتر حسابداری", "n": 15, "color": "cyan"}, {"label": "برندها", "n": 8, "color": "violet"}, {"label": "رسانه", "n": 7, "color": "blue"}], "decisions": ["سالن با ۶ میز دمو", "سخنران: یک مشتری آزمایشی", "گیفت: یک ماه اشتراک رایگان، نه کالا"], "runsheet": [{"label": "آغاز", "min": 10}, {"label": "دادهٔ مسئله", "min": 15}, {"label": "روایت مشتری", "min": 15}, {"label": "دموی زنده", "min": 20}, {"label": "پرسش‌وپاسخ", "min": 15}, {"label": "میزهای دمو", "min": 45}]}, "groups": {"فروش": "green", "شراکت": "violet", "محتوا": "cyan", "رسانه": "blue", "رویداد": "copper", "محصول": "amber"}, "tasks": [{"id": 1, "group": "فروش", "title": "فهرست ۸۰ حساب هدف", "owner": "مدیر فروش", "deliverable": "فهرست حساب در CRM", "done": "≥۸۰ حساب با تصمیم‌گیر، نقش و مالک پیگیری", "start": "1405/08/26", "end": "1405/08/30", "dependency": "دسترسی به CRM", "detail": "تفکیک سه سگمنت؛ ثبت تصمیم‌گیر، درد اصلی و اقدام بعدی.", "s": 0, "e": 4, "span": "۲۶ آبان → ۳۰ آبان", "due_label": "۳۰ آبان"}, {"id": 2, "group": "شراکت", "title": "جلسه با ۵ دفتر حسابداری", "owner": "مدیر شراکت", "deliverable": "مدل کمیسیون و صورت‌جلسه", "done": "≥۳ دفتر با پاسخ مکتوب به مدل کمیسیون", "start": "1405/08/26", "end": "1405/09/05", "dependency": "پیش‌نویس مدل کمیسیون", "detail": "شروع با حسابداری‌ها چون هر دفتر به چند پخش‌کننده دسترسی دارد.", "s": 0, "e": 9, "span": "۲۶ آبان → ۵ آذر", "due_label": "۵ آذر"}, {"id": 3, "group": "محتوا", "title": "گزارش «هزینهٔ یک سفارش اشتباه»", "owner": "مدیر محتوا", "deliverable": "گزارش ۴ صفحه‌ای", "done": "هر عدد با منبع؛ تأیید کتبی ۳ مشتری آزمایشی", "start": "1405/08/26", "end": "1405/08/30", "dependency": "دادهٔ مشتریان آزمایشی", "detail": "آغاز روایت کمپین؛ بدون نام بردن از محصول.", "s": 0, "e": 4, "span": "۲۶ آبان → ۳۰ آبان", "due_label": "۳۰ آبان"}, {"id": 4, "group": "محتوا", "title": "قفل کانسپت و پیام‌ها", "owner": "مدیر محتوا", "deliverable": "کانسپت و ماتریس پیام", "done": "تأیید مدیرعامل؛ هر ادعا با برچسب مجاز/مشروط", "start": "1405/09/01", "end": "1405/09/03", "dependency": "گزارش داده", "detail": "انتخاب یکی از چهار کانسپت و ثبت گزینهٔ ردشده در DR.", "s": 5, "e": 7, "span": "۱ آذر → ۳ آذر", "due_label": "۳ آذر"}, {"id": 5, "group": "رسانه", "title": "مدیاپلن و پیش‌فاکتورها", "owner": "مدیر بازاریابی", "deliverable": "مدیاپلن با تاریخ", "done": "۳ پیش‌فاکتور با قابلیت لغو تا ۱۰ آذر", "start": "1405/09/01", "end": "1405/09/05", "dependency": "کانسپت قفل‌شده", "detail": "رپورتاژ، لینکدین و خبرنامه؛ پرداخت فقط بعد از دروازهٔ محصول.", "s": 5, "e": 9, "span": "۱ آذر → ۵ آذر", "due_label": "۵ آذر"}, {"id": 6, "group": "محصول", "title": "آزمون راه‌اندازی یک‌روزه", "owner": "مدیر محصول", "deliverable": "گزارش آزمون", "done": "۳ مشتری آزمایشی در ≤۸ ساعت راه‌اندازی شده‌اند", "start": "1405/08/26", "end": "1405/09/10", "dependency": "نسخهٔ پایدار و مستند راه‌اندازی", "detail": "پیش‌شرط ادعای «راه‌اندازی در یک روز» و دموی زنده.", "s": 0, "e": 14, "span": "۲۶ آبان → ۱۰ آذر", "due_label": "۱۰ آذر"}, {"id": 7, "group": "محصول", "title": "دموی زنده با دادهٔ مشتری", "owner": "مدیر محصول", "deliverable": "اسکریپت و محیط دمو", "done": "۵ اجرای آزمایشی بدون خطا", "start": "1405/09/06", "end": "1405/09/15", "dependency": "آزمون راه‌اندازی", "detail": "ورود فایل اکسل مشتری و نمایش موجودی در کمتر از ۱۵ دقیقه.", "s": 10, "e": 19, "span": "۶ آذر → ۱۵ آذر", "due_label": "۱۵ آذر"}, {"id": 8, "group": "رسانه", "title": "پیش‌کمپین و وبینار", "owner": "مدیر بازاریابی", "deliverable": "انتشار گزارش و وبینار", "done": "≥۲۰۰ ثبت‌نام وبینار؛ ≥۴۰ لید ثبت‌شده در CRM", "start": "1405/09/11", "end": "1405/09/22", "dependency": "دروازهٔ محصول", "detail": "انتشار فقط پس از عبور از دروازهٔ ۱۰ آذر.", "s": 15, "e": 26, "span": "۱۱ آذر → ۲۲ آذر", "due_label": "۲۲ آذر"}, {"id": 9, "group": "رویداد", "title": "سالن، دعوت و RSVP", "owner": "مدیر رویداد", "deliverable": "فهرست مهمانان تأییدشده", "done": "≥۵۰ RSVP قطعی از حساب‌های هدف", "start": "1405/09/06", "end": "1405/09/22", "dependency": "فهرست حساب‌ها", "detail": "دعوت دوموجی؛ قرارداد سالن پس از دروازهٔ محصول.", "s": 10, "e": 26, "span": "۶ آذر → ۲۲ آذر", "due_label": "۲۲ آذر"}, {"id": 10, "group": "رویداد", "title": "برگزاری رونمایی", "owner": "مدیر رویداد", "deliverable": "رویداد و بستهٔ رسانه‌ای", "done": "≥۲۰ دموی یک‌به‌یک ثبت‌شده در CRM", "start": "1405/09/23", "end": "1405/09/25", "dependency": "دمو، مهمانان، سالن", "detail": "میزهای دمو مهم‌ترین بخش رویداد است، نه سخنرانی.", "s": 27, "e": 29, "span": "۲۳ آذر → ۲۵ آذر", "due_label": "۲۵ آذر"}, {"id": 11, "group": "فروش", "title": "دمو و پیشنهاد به حساب‌ها", "owner": "مدیر فروش", "deliverable": "پیشنهادهای ارسال‌شده", "done": "≥۱۲ پیشنهاد مکتوب با مبلغ", "start": "1405/09/06", "end": "1405/10/05", "dependency": "دموی زنده", "detail": "پیگیری ۲۴ ساعت، ۷۲ ساعت و یک هفته پس از هر دمو.", "s": 10, "e": 39, "span": "۶ آذر → ۵ دی", "due_label": "۵ دی"}, {"id": 12, "group": "فروش", "title": "بستن قراردادها", "owner": "مدیر فروش", "deliverable": "قراردادهای امضاشده", "done": "≥۵ قرارداد سالانه، تطبیق‌شده با مالی", "start": "1405/09/20", "end": "1405/10/15", "due_label": "تا ۱۵ دی", "dependency": "پیشنهادها", "detail": "هر فرصت با مبلغ، احتمال و اقدام بعدی در CRM.", "s": 24, "e": 49, "span": "۲۰ آذر → ۱۵ دی"}], "phases": [{"title": "فاز ۱ · کشف و داده", "start": "1405/08/26", "end": "1405/09/05", "color": "cyan", "s": 0, "e": 9}, {"title": "فاز ۲ · دروازه و پیش‌کمپین", "start": "1405/09/06", "end": "1405/09/22", "color": "blue", "s": 10, "e": 26}, {"title": "فاز ۳ · رونمایی", "start": "1405/09/23", "end": "1405/09/25", "color": "copper", "s": 27, "e": 29}, {"title": "فاز ۴ · تبدیل", "start": "1405/09/26", "end": "1405/10/15", "color": "green", "s": 30, "e": 49}], "milestones": [{"date": "1405/08/30", "title": "حساب‌ها و گزارش", "d": 4, "label": "۳۰ آبان"}, {"date": "1405/09/10", "title": "دروازهٔ محصول", "d": 14, "label": "۱۰ آذر"}, {"date": "1405/09/25", "title": "رونمایی", "d": 29, "label": "۲۵ آذر"}, {"date": "1405/10/15", "title": "نتیجهٔ فروش", "d": 49, "label": "۱۵ دی"}], "dependencies": [{"chain": "داده ← گزارش ← کانسپت", "color": "cyan", "text": "بدون دادهٔ تأییدشدهٔ مشتری، کانسپت قفل نمی‌شود."}, {"chain": "آزمون محصول ← ادعا ← انتشار", "color": "amber", "text": "هیچ پرداخت رسانه‌ای پیش از دروازهٔ ۱۰ آذر انجام نمی‌شود."}, {"chain": "دمو ← پیشنهاد ← قرارداد", "color": "green", "text": "مسیر بحرانی فروش؛ هر هفته تعداد دمو و پیشنهاد گزارش می‌شود."}], "budget": {"unit": "میلیون تومان", "reserve": 400, "unit_costs": "≈ ۴۷ م.ت به‌ازای هر حساب هدف", "note": "ذخیرهٔ ۴۰۰ (≈۱۰٪) فرض است. قرارداد رسانه و سالن پس از دروازهٔ محصول بسته می‌شود.", "groups": [{"key": "رویداد", "label": "رویداد و اجرا", "color": "copper"}, {"key": "رسانه", "label": "رسانه و تبلیغ", "color": "blue"}, {"key": "محتوا", "label": "محتوا و دمو", "color": "cyan"}], "items": [{"name": "سالن و تجهیزات", "amount": 700, "group": "رویداد", "scope": "سالن ۶۰ نفره با ۶ میز دمو", "commit": ["1405/09/11", "1405/09/15"], "commit_note": "پس از دروازهٔ محصول", "cs": 15, "ce": 19}, {"name": "پذیرایی", "amount": 500, "group": "رویداد", "scope": "۷۰ نفر", "commit": ["1405/09/18", "1405/09/22"], "cs": 22, "ce": 26}, {"name": "دعوت و RSVP", "amount": 100, "group": "رویداد", "scope": "سامانهٔ ثبت‌نام و پیگیری", "commit": ["1405/09/06", "1405/09/10"], "cs": 10, "ce": 14}, {"name": "رپورتاژ رسانه‌ای", "amount": 900, "group": "رسانه", "scope": "دو رسانهٔ کسب‌وکار", "commit": ["1405/09/11", "1405/09/14"], "commit_note": "پیش‌فاکتور قابل لغو تا ۱۰ آذر", "cs": 15, "ce": 18}, {"name": "تبلیغ لینکدین", "amount": 600, "group": "رسانه", "scope": "هدف‌گیری مدیران پخش", "commit": ["1405/09/11", "1405/09/22"], "cs": 15, "ce": 26}, {"name": "گزارش و طراحی", "amount": 300, "group": "محتوا", "scope": "گزارش ۴ صفحه‌ای و اینفوگرافیک", "commit": ["1405/08/26", "1405/08/30"], "cs": 0, "ce": 4}, {"name": "ویدیوی دمو", "amount": 500, "group": "محتوا", "scope": "یک ویدیوی ۹۰ ثانیه‌ای و سه برش", "commit": ["1405/09/04", "1405/09/15"], "cs": 8, "ce": 19}, {"name": "وبینار", "amount": 200, "group": "محتوا", "scope": "پلتفرم، مجری و تدوین", "commit": null, "commit_note": "تاریخ به DR-03 وابسته است"}]}, "goals": {"target": 1200, "target_unit": "میلیون تومان", "accounts": 80, "funnel": {"meet": 60, "demo": 50, "prop": 50, "close": 40, "ticket": 250, "evidence": "assumed", "note": "نرخ‌ها فرض نمونه‌اند؛ در طرح واقعی تیم فروش آن‌ها را برآورد می‌کند"}}, "gates": [{"date": "1405/08/30", "title": "حساب‌ها و گزارش", "criteria": "≥۸۰ حساب کامل در CRM و گزارش با ۳ تأیید مشتری", "approver": "مدیرعامل", "on_fail": "تعویق پیش‌کمپین یک هفته", "label": "۳۰ آبان"}, {"date": "1405/09/10", "title": "دروازهٔ محصول", "criteria": "۳ راه‌اندازی ≤۸ ساعت و ۵ دموی بدون خطا", "approver": "مدیرعامل و مدیر محصول", "on_fail": "لغو پیش‌فاکتورها؛ رونمایی به دی منتقل می‌شود", "label": "۱۰ آذر"}, {"date": "1405/09/22", "title": "آمادگی رونمایی", "criteria": "≥۵۰ RSVP قطعی و ≥۴۰ لید", "approver": "مدیر بازاریابی", "on_fail": "رویداد کوچک‌تر با تمرکز بر میزهای دمو", "label": "۲۲ آذر"}, {"date": "1405/10/15", "title": "نتیجهٔ فروش", "criteria": "≥۵ قرارداد و ≥۱٬۲۰۰ میلیون تومان تطبیق‌شده با مالی", "approver": "مدیرعامل", "on_fail": "بازبینی قیف و قیمت پیش از فاز بعد", "label": "۱۵ دی"}], "risks": [{"title": "محصول در دروازه رد شود", "response": "پیش‌فاکتورها قابل لغو؛ رونمایی منتقل می‌شود. مالک: مدیر محصول"}, {"title": "ادعای اثبات‌نشده در رسانه", "response": "قانون ادعاها و تأیید مکتوب داده پیش از انتشار. مالک: مدیر محتوا"}, {"title": "حسابداری‌ها رقیب ببینند", "response": "مدل کمیسیون و خروجی سازگار با نرم‌افزار آن‌ها. مالک: مدیر شراکت"}, {"title": "نرخ تبدیل کمتر از فرض", "response": "گزارش هفتگی قیف؛ اگر هفتهٔ سوم <۱۰ دمو، افزایش حساب‌ها. مالک: مدیر فروش"}, {"title": "رقیب تخفیف سنگین بدهد", "response": "تمرکز بر راه‌اندازی یک‌روزه، نه قیمت. مالک: مدیرعامل"}], "decisions": [{"id": "DR-01", "title": "ترتیب سگمنت‌ها", "status": "decided", "chosen": "اول حسابداری‌ها", "rejected": "اول پخش‌کننده‌ها", "cost": "فروش مستقیم سریع‌تر در دو هفتهٔ اول", "owner": "مدیر فروش"}, {"id": "DR-02", "title": "گیفت رویداد", "status": "decided", "chosen": "یک ماه اشتراک رایگان", "rejected": "گیفت فیزیکی برندشده", "cost": "حس ملموس‌تر در روز رویداد", "owner": "مدیر بازاریابی"}, {"id": "DR-03", "title": "تاریخ وبینار", "status": "open", "options": "۱۵ آذر · ۲۰ آذر", "blocks": "قرارداد وبینار و دعوت", "due": "۵ آذر", "owner": "مدیر بازاریابی"}, {"id": "DR-04", "title": "قیمت سالانه", "status": "open", "options": "۲۵۰ ثابت · پلکانی بر اساس کاربر", "blocks": "پیشنهادهای فروش", "due": "۸ آذر", "owner": "مدیرعامل"}], "open_questions": [{"id": "OQ-01", "q": "شرایط قراردادی نگهداری دادهٔ مشتری (پرسش برای متخصص حقوقی)", "owner": "مدیرعامل", "due": "۵ آذر", "blocks": "قرارداد نمونه و ادعای امنیت داده", "critical": true}, {"id": "OQ-02", "q": "نرخ تبدیل واقعی هر مرحله (برآورد تیم فروش)", "owner": "مدیر فروش", "due": "۳۰ آبان", "blocks": "اعتبار هدف ۱٬۲۰۰", "critical": true}], "assumptions": [{"text": "۶۰٪ حساب‌ها جلسه می‌پذیرند", "why": "فرض نمونه", "impact": "هدف فروش کاهش می‌یابد؛ حساب‌ها باید بیشتر شوند"}, {"text": "محصول تا ۱۰ آذر راه‌اندازی یک‌روزه دارد", "why": "دروازهٔ محصول", "impact": "رونمایی و ادعای اصلی منتقل می‌شود"}, {"text": "ذخیرهٔ ۱۰٪ کافی است", "why": "عرف رویدادهای کوچک", "impact": "هزینهٔ پیش‌بینی‌نشده از بودجهٔ رسانه کم می‌شود"}], "sources": [{"id": "S-01", "title": "بریف ساختگی محصول پرتو", "url": "", "date": "۱۴۰۵/۰۸"}, {"id": "S-02", "title": "مقایسهٔ ساختگی عرضه‌های مشابه", "url": "", "date": "۱۴۰۵/۰۸"}], "ask": {"title": "برای شروع اجرا، این سه تصمیم را لازم داریم", "lead": "بقیهٔ طرح با مالک و موعد مشخص است.", "items": [{"title": "تصویب بودجهٔ ۳٬۸۰۰ + ۴۰۰ ذخیره", "text": "با شرط پرداخت رسانه پس از دروازهٔ محصول."}, {"title": "تأیید قیمت سالانه (DR-04)", "text": "تا ۸ آذر، پیش از اولین پیشنهاد."}, {"title": "پاسخ حقوقی OQ-01", "text": "پیش از ۵ آذر و هر ادعای عمومی دربارهٔ امنیت داده."}]}, "footer": "نمونهٔ ساختگی برای نمایش اسکیل gtm-plan. هیچ‌یک از نام‌ها، اعداد و منابع واقعی نیستند.", "scorecard": {"note": "امتیاز نمونهٔ ساختگی؛ برای نشان‌دادن ساختار، نه ارزیابی یک طرح واقعی.", "dims": [{"id": 1, "score": 2.5, "why": "ادعاها برچسب دارند، اما منابع داخلی‌اند و URL ندارند.", "fix": "منبع بیرونی با URL برای هر عدد بازار."}, {"id": 2, "score": 3, "why": "سه عرضهٔ مشابه با درس و جملهٔ جایگاه‌یابی؛ اندازهٔ بازار نیست.", "fix": "برآورد تعداد پخش‌کننده‌های هدف با منبع."}, {"id": 3, "score": 4, "why": "هر سگمنت تصمیم‌گیر، اعتراض‌ها و اندازهٔ خرید دارد؛ حساب‌های نام‌دار نه.", "fix": "۱۰ حساب نام‌دار به‌ازای هر سگمنت."}, {"id": 4, "score": 4, "why": "هدف از قیف مشتق شده و شاخص هفتگی دارد؛ نرخ‌ها فرض‌اند.", "fix": "نرخ‌های واقعی از تیم فروش (OQ-02)."}, {"id": 5, "score": 3.5, "why": "دو تصمیم با گزینهٔ ردشده و هزینه؛ دو تصمیم باز با موعد.", "fix": "بستن DR-03 و DR-04."}, {"id": 6, "score": 4, "why": "فرض‌ها با اثر؛ پرسش‌ها با مالک، موعد و آنچه مسدود می‌کنند.", "fix": "—"}, {"id": 7, "score": 4.5, "why": "۱۲ کار با مالک، گانت، فاز و مسیر بحرانی.", "fix": "—"}, {"id": 8, "score": 5, "why": "هر کار معیار «انجام‌شده» عددی دارد.", "fix": "—"}, {"id": 9, "score": 4, "why": "ریسک با پاسخ و مالک، قانون ادعا، OQ حقوقی و ذخیره؛ تریگر عددی فقط برای یک ریسک.", "fix": "تریگر عددی برای هر ریسک."}, {"id": 10, "score": 5, "why": "دروازه‌ها عددی، با تأییدکننده و on_fail؛ هزینهٔ برگشت‌ناپذیر پس از دروازه.", "fix": "—"}], "fixes": [{"id": "F1", "priority": 1, "title": "نرخ‌های واقعی قیف (OQ-02)", "desc": "جایگزینی فرض‌ها با برآورد تیم فروش", "gain": {"4": 0.5, "1": 0.5}}, {"id": "F2", "priority": 1, "title": "بستن قیمت سالانه (DR-04)", "desc": "پیش از اولین پیشنهاد", "gain": {"5": 1}}, {"id": "F3", "priority": 2, "title": "منبع بیرونی برای اندازهٔ بازار", "desc": "تعداد پخش‌کننده‌های هدف با URL", "gain": {"1": 1, "2": 1}}, {"id": "F4", "priority": 2, "title": "تریگر عددی برای هر ریسک", "desc": "آستانه‌ای که پاسخ را فعال می‌کند", "gain": {"9": 1}}]}, "_d": {"days": [{"d": "۲۶", "fri": false}, {"d": "۲۷", "fri": false}, {"d": "۲۸", "fri": false}, {"d": "۲۹", "fri": true}, {"d": "۳۰", "fri": false}, {"d": "۱", "fri": false}, {"d": "۲", "fri": false}, {"d": "۳", "fri": false}, {"d": "۴", "fri": false}, {"d": "۵", "fri": false}, {"d": "۶", "fri": true}, {"d": "۷", "fri": false}, {"d": "۸", "fri": false}, {"d": "۹", "fri": false}, {"d": "۱۰", "fri": false}, {"d": "۱۱", "fri": false}, {"d": "۱۲", "fri": false}, {"d": "۱۳", "fri": true}, {"d": "۱۴", "fri": false}, {"d": "۱۵", "fri": false}, {"d": "۱۶", "fri": false}, {"d": "۱۷", "fri": false}, {"d": "۱۸", "fri": false}, {"d": "۱۹", "fri": false}, {"d": "۲۰", "fri": true}, {"d": "۲۱", "fri": false}, {"d": "۲۲", "fri": false}, {"d": "۲۳", "fri": false}, {"d": "۲۴", "fri": false}, {"d": "۲۵", "fri": false}, {"d": "۲۶", "fri": false}, {"d": "۲۷", "fri": true}, {"d": "۲۸", "fri": false}, {"d": "۲۹", "fri": false}, {"d": "۳۰", "fri": false}, {"d": "۱", "fri": false}, {"d": "۲", "fri": false}, {"d": "۳", "fri": false}, {"d": "۴", "fri": true}, {"d": "۵", "fri": false}, {"d": "۶", "fri": false}, {"d": "۷", "fri": false}, {"d": "۸", "fri": false}, {"d": "۹", "fri": false}, {"d": "۱۰", "fri": false}, {"d": "۱۱", "fri": true}, {"d": "۱۲", "fri": false}, {"d": "۱۳", "fri": false}, {"d": "۱۴", "fri": false}, {"d": "۱۵", "fri": false}], "n": 50, "months": [{"m": 8, "label": "آبان ۱۴۰۵", "s": 0, "e": 4}, {"m": 9, "label": "آذر ۱۴۰۵", "s": 5, "e": 34}, {"m": 10, "label": "دی ۱۴۰۵", "s": 35, "e": 49}], "start_iso": "2026-11-17", "launch": 29, "gate": 14, "launch_label": "۲۵ آذر", "gate_label": "۱۰ آذر", "window_label": "۲۶ آبان — ۱۵ دی ۱۴۰۵", "axis": [[0, "۲۶ آبان"], [14, "۱۰ آذر"], [29, "۲۵ آذر"], [49, "۱۵ دی"]], "budget_total": 3800, "before_gate": 900, "unknown_commit": 200, "per_account": 15.0, "deals": 4.8, "projected": 1200.0, "dims": [{"id": 1, "n": "شواهد و منابع", "w": 15}, {"id": 2, "n": "پژوهش بازار و مقایسه", "w": 10}, {"id": 3, "n": "پرسونای مشتری", "w": 10}, {"id": 4, "n": "اهداف و معیارهای قابل اندازه‌گیری", "w": 15}, {"id": 5, "n": "تصمیم‌ها با هزینهٔ گزینهٔ ردشده", "w": 10}, {"id": 6, "n": "فرض‌ها و پرسش‌های باز", "w": 5}, {"id": 7, "n": "زمان‌بندی و وابستگی‌ها", "w": 10}, {"id": 8, "n": "تعریف «انجام‌شده» برای هر کار", "w": 10}, {"id": 9, "n": "ریسک‌ها و حفاظ‌ها", "w": 10}, {"id": 10, "n": "دروازه‌های Go / No-Go", "w": 5}], "score_now": 76.5}};
+const A={"primary": null, "icon": null, "partner": null, "orb": null};
+const D=P._d,B=P.budget,G=P.goals,F=G.funnel;
+const fa=n=>Number(n).toLocaleString('fa-IR',{maximumFractionDigits:1});
+const en=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:1});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const slug=(P.meta.slug||P.meta.brand).replace(/[^A-Za-z0-9]+/g,'_');
+
+/* chrome */
+document.getElementById('logo').innerHTML=A.primary?`<img class="logo" src="${A.primary}" alt="${esc(P.meta.brand)}">`:`<b style="font-size:20px">${esc(P.meta.brand)}</b>`;
+document.getElementById('vk').innerHTML=A.partner?`<img class="vk" src="${A.partner}" alt="">`:'';
+if(A.orb)document.getElementById('bgOrb').src=A.orb;else document.getElementById('bgOrb').remove();
+if(A.icon){const l=document.createElement('link');l.rel='icon';l.href=A.icon;document.head.appendChild(l)}
+document.getElementById('hsub').textContent=`${P.meta.brand_fa||P.meta.brand} · ${D.window_label}`;
+document.getElementById('toPres').href=slug+'_GTM_Presentation.html';
+document.getElementById('foot').textContent=`ارزیابی بر اساس مقیاس ۱۰ معیاره (اصول idea-to-blueprint تطبیق‌داده‌شده برای کمپین). امتیازها و افزایش‌های برآوردی قضاوت تحلیلی‌اند، نه اندازه‌گیری. ${P.scorecard.note||''}`;
+
+/* tiles */
+const st=(c,t)=>`<span class="status ${c}">${t}</span>`;
+const per=D.per_account,unit=G.target_unit||'';
+document.getElementById('tPer').innerHTML=`<div class="lbl">فروش لازم برای هر حساب</div><div class="val mono">${en(per)} <small>${esc(unit)}</small></div><div class="note">${fa(G.target)} ÷ ${fa(G.accounts)} حساب، حتی اگر همه بخرند</div><div style="margin-top:10px">${D.projected>=G.target?st('good','✓ قیف به هدف می‌رسد'):D.projected>=.6*G.target?st('warn','! قیف با هدف فاصله دارد'):st('crit','✕ قیف به هدف نمی‌رسد')}</div>`;
+const pct=D.budget_total?Math.round(D.before_gate/D.budget_total*100):0;
+document.getElementById('tGate').innerHTML=`<div class="lbl">تعهد پیش از دروازهٔ محصول (${esc(D.gate_label)})</div><div class="val mono">${en(D.before_gate)} <small>از ${en(D.budget_total)}</small></div><div class="note">${fa(pct)}٪ بودجه${D.unknown_commit?` · ${en(D.unknown_commit)} بدون تاریخ تعهد`:''}</div><div style="margin-top:10px">${pct>40?st('warn','! ریسک هزینهٔ برگشت‌ناپذیر'):st('good','✓ تعهد زودهنگام محدود')}</div>`;
+document.getElementById('tRes').innerHTML=`<div class="lbl">ذخیرهٔ احتیاطی بودجه</div><div class="val mono">${en(B.reserve||0)} <small>${esc(B.unit)}</small></div><div class="note">${D.budget_total?`${fa(Math.round((B.reserve||0)/D.budget_total*100))}٪ از بودجهٔ مستقیم`:''}${B.unit_costs?` · ${esc(B.unit_costs)}`:''}</div><div style="margin-top:10px">${B.reserve?st('good','✓ ذخیره تعریف شده'):st('warn','! بدون ذخیره')}</div>`;
+
+/* scorecard */
+const dims=D.dims.map(d=>({...d,...P.scorecard.dims.find(x=>x.id===d.id)}));
+const fixes=P.scorecard.fixes||[];
+const KEY='gtm-eval-'+slug;
+let done={};try{done=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(_){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(done))}catch(_){}};
+function totals(){const g={};fixes.forEach(f=>{if(done[f.id])Object.entries(f.gain||{}).forEach(([k,v])=>g[k]=(g[k]||0)+v)});let now=0,proj=0;dims.forEach(d=>{now+=d.score/5*d.w;proj+=Math.min(5,d.score+(g[d.id]||0))/5*d.w});return{now,proj,g}}
+function verdict(x){return x>=75?['good','✓ آماده برای تصمیم Go']:x>=60?['warn','! آماده به‌شرط رفع موارد باقی‌مانده']:['crit','✕ آمادهٔ تصمیم Go نیست']}
+function render(){
+ const {now,proj,g}=totals();
+ document.getElementById('scoreNow').textContent=en(now);
+ document.getElementById('scoreProj').textContent=proj>now+.05?`← ${en(proj)} پس از اصلاحات`:'';
+ const t=document.getElementById('heroTrack').children;t[0].style.width=now+'%';t[1].style.width=(proj-now)+'%';
+ const [cls,txt]=verdict(proj);const v=document.getElementById('verdict');v.className='status '+cls;v.textContent=(proj>now+.05?'برآورد پس از اصلاحات: ':'')+txt;
+ document.getElementById('dims').innerHTML=dims.map(d=>{const add=Math.min(5,d.score+(g[d.id]||0))-d.score;return`<div class="dim"><div class="n">${esc(d.n)}</div><div class="w mono">${d.w}٪</div>
+  <div class="bar"><i style="width:${d.score/5*100}%;background:var(--s-current)"></i>${add>0?`<i style="width:${add/5*100}%;background:var(--s-gain)"></i>`:''}</div>
+  <div class="v"><b class="mono">${en(d.score)}</b>${add>0?` <span class="mono">→ ${en(d.score+add)}</span>`:''} · <span class="mono">${en(d.score/5*d.w)}</span> امتیاز</div>
+  <div class="more"><b>چرا:</b> ${esc(d.why)}${d.fix?`<br><b>اصلاح:</b> ${esc(d.fix)}`:''}</div></div>`}).join('');
+ document.querySelectorAll('.dim').forEach(el=>el.onclick=()=>el.classList.toggle('open'));
+ document.getElementById('fixes').innerHTML=fixes.map(f=>{const pts=Object.entries(f.gain||{}).reduce((a,[k,v])=>{const d=dims.find(x=>x.id==k);return a+(d?Math.min(v,5-d.score)/5*d.w:0)},0);
+  return`<label class="fix ${done[f.id]?'done':''}"><input type="checkbox" data-id="${esc(f.id)}" ${done[f.id]?'checked':''}><div><b>${esc(f.title)}<span class="pri ${f.priority===1?'p1':'p2'}">${f.priority===1?'اولویت ۱':'اولویت ۲'}</span></b><small>${esc(f.desc||'')}</small></div><span class="gain mono">+${en(pts)}</span></label>`}).join('')||'<p class="sub">اصلاحی ثبت نشده است.</p>';
+ document.querySelectorAll('.fix input').forEach(el=>el.onchange=()=>{done[el.dataset.id]=el.checked;save();render()});
+}
+document.getElementById('reset').onclick=()=>{done={};save();render()};
+
+/* funnel */
+document.getElementById('fTitle').textContent=`آزمون قیف فروش: آیا ${fa(G.target)} ${unit} ممکن است؟`;
+document.getElementById('ticketLbl').firstChild.textContent=`میانگین خرید (${unit})`;
+const ids=['iAcc','iMeet','iDemo','iProp','iClose','iTicket'],vals=[G.accounts,F.meet,F.demo,F.prop,F.close,F.ticket];
+ids.forEach((i,k)=>document.getElementById(i).value=vals[k]);
+const EV={verified:'تأییدشده',assumed:'فرض',unknown:'نامعلوم',stated:'اعلام‌شده توسط تیم'};
+document.getElementById('fAssume').textContent=`منبع نرخ‌های پیش‌فرض: ${EV[F.evidence]||F.evidence}${F.note?' — '+F.note:''}.`;
+function funnel(){
+ const [acc,meet,demo,prop,close,ticket]=ids.map(i=>Math.max(0,+document.getElementById(i).value||0));
+ const st_=[['حساب هدف',acc],['جلسه',acc*meet/100],['دمو',acc*meet/100*demo/100],['پیشنهاد',acc*meet/100*demo/100*prop/100],['خرید',acc*meet/100*demo/100*prop/100*close/100]];
+ document.getElementById('funnel').innerHTML=st_.map(([n,v])=>`<div class="fn"><span>${n}</span><div class="b"><i style="width:${acc?v/acc*100:0}%"></i></div><span class="c mono">${en(v)}</span></div>`).join('');
+ const deals=st_[4][1],sales=deals*ticket,need=deals?G.target/deals:Infinity,p=sales/G.target*100;
+ const [c,txt]=p>=100?['good','✓ به هدف می‌رسد']:p>=60?['warn','! فاصله با هدف']:['crit','✕ فاصلهٔ جدی با هدف'];
+ document.getElementById('fResult').innerHTML=`<div class="line"><span>فروش پیش‌بینی‌شده</span><b class="mono">${en(sales)} ${esc(unit)}</b></div><div class="line"><span>نسبت به هدف</span><b class="mono">${en(p)}٪</b></div><div class="line"><span>میانگین خرید لازم برای رسیدن به هدف</span><b class="mono">${isFinite(need)?en(need)+' '+esc(unit):'—'}</b></div><div style="margin-top:8px"><span class="status ${c}">${txt}</span></div>`;
+}
+ids.forEach(i=>document.getElementById(i).addEventListener('input',funnel));
+
+/* spend timeline */
+(function(){
+ const pos=d=>d/(D.n-1)*100;
+ let h=B.items.map(i=>`<div class="tl-row"><span>${esc(i.name)}</span><div class="lane">${i.cs===undefined?`<div class="seg unk" style="right:0;left:0" data-tip="${esc(i.name)}|در طرح تاریخ تعهد ندارد"></div>`:`<div class="seg" style="right:${pos(i.cs)}%;width:${Math.max(1.5,pos(i.ce)-pos(i.cs))}%" data-tip="${esc(i.name)} · ${en(i.amount)}|${esc(i.commit_note||i.scope||'')}"></div>`}</div><span class="amt mono">${en(i.amount)}</span></div>`).join('');
+ h+=`<div class="tl-axis"><span></span><div class="scale">${D.axis.map(([d,l])=>`<span style="right:${pos(d)}%">${esc(l)}</span>`).join('')}</div><span></span></div>`;
+ document.getElementById('tl').innerHTML=h;
+ document.getElementById('tlSum').innerHTML=`<div class="line"><span>تعهدشده پیش از ${esc(D.gate_label)}</span><b class="mono">${en(D.before_gate)} · ${fa(pct)}٪</b></div>${D.unknown_commit?`<div class="line"><span>بدون تاریخ تعهد</span><b class="mono">${en(D.unknown_commit)}</b></div>`:''}<div class="line"><span>قاعده</span><span style="color:var(--text)">پیش از دروازهٔ محصول فقط تعهدهای قابل لغو</span></div>`;
+})();
+function placeGates(){
+ const tl=document.getElementById('tl'),lane=tl.querySelector('.lane');if(!lane)return;
+ tl.querySelectorAll('.gate').forEach(g=>g.remove());
+ const tr=tl.getBoundingClientRect(),lr=lane.getBoundingClientRect();
+ [[D.gate,'دروازهٔ محصول','gate'],[D.launch,'رونمایی','gate launch']].forEach(([d,l,c])=>{const g=document.createElement('div');g.className=c;g.style.right=(tr.right-(lr.right-lr.width*d/(D.n-1)))+'px';g.innerHTML=`<span>${l}</span>`;tl.appendChild(g)});
+}
+addEventListener('resize',placeGates);
+
+/* decisions + open questions */
+const rows=[...P.open_questions.map(q=>[q.id,q.q,q.owner,q.blocks,q.due,q.critical?'crit':'warn']),...P.decisions.filter(d=>d.status!=='decided').map(d=>[d.id,d.title,d.owner||'—',d.blocks||'',d.due,'warn'])];
+document.getElementById('decisions').innerHTML=rows.map(([id,t,o,b,due,s])=>`<tr><td class="id">${esc(id)}</td><td>${esc(t)}</td><td>${esc(o)}</td><td style="color:var(--muted)">${esc(b)}</td><td style="white-space:nowrap">${esc(due)}</td><td><span class="status ${s}">${s==='crit'?'✕ مسدودکننده':'! باز'}</span></td></tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted)">موردی باز نیست.</td></tr>';
+
+/* tooltip */
+const tip=document.getElementById('tip');
+document.addEventListener('mousemove',e=>{const el=e.target.closest('[data-tip]');if(!el){tip.style.opacity=0;return}const [a,b]=el.dataset.tip.split('|');tip.innerHTML=`<b>${a}</b>${b||''}`;tip.style.opacity=1;tip.style.left=Math.max(8,Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8))+'px';tip.style.top=(e.clientY+16)+'px'});
+
+render();funnel();requestAnimationFrame(placeGates);
+</script>
+</body>
+</html>
